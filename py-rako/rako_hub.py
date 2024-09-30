@@ -1,13 +1,15 @@
+"""Integration class for py-rako module"""
 from __future__ import annotations
 
 import asyncio
 from typing import List
 from consts import DEFAULT_PORT
-from errors import SendCommandError
+from errors import ConfigValidationError, SendCommandError
 from model import Channel, Colour, ColourLevel, HubInfo, Level, Room, Scene
 
 
 class RakoHub:
+    """API class to integratte with Rako Hub"""
     def __init__(
         self,
         client_name: str,
@@ -16,22 +18,22 @@ class RakoHub:
     ):
         host = host.strip()
         if not host:
-            raise Exception("RakoHub: host parameter cannot be empty")
-        
+            raise ConfigValidationError("RakoHub: host parameter cannot be empty")
+
         if port < 0 or port > 65535:
-            raise Exception("RakoHub: port should be between 0 and 65535")
-        
+            raise ConfigValidationError("RakoHub: port should be between 0 and 65535")
+
         client_name = client_name.strip()
         if not client_name:
-            raise Exception("RakoHub: client_name parameter cannot be empty")
-        
+            raise ConfigValidationError("RakoHub: client_name parameter cannot be empty")
+
         if "," in client_name:
-            raise Exception("RakoHub: invalid character ',' in client_name")
-        
+            raise ConfigValidationError("RakoHub: invalid character ',' in client_name")
+
         self.host = host
         self.port = port
         self.client_name = client_name
-        
+
         self._reader = None
         self._writer = None
 
@@ -40,63 +42,63 @@ class RakoHub:
         Get list of channels in a room. If room is not specified, returns all channels.
         """
         return await self._query("CHANNEL", self._to_channel, room_id)
-    
+
     async def get_colours(self, room_id: int = None) -> List[Colour]:
         """
-        Get list colour enabled channels in a room. 
+        Get list colour enabled channels in a room.
         If room is not specified, returns colour enabled channels for all the rooms.
         """
         return await self._query("COLOR", self._to_colour, room_id)
-    
+
     async def get_colours_levels(self, room_id: int = None) -> List[ColourLevel]:
         """
-        Get list of brightness levels for all the channels in a room. 
+        Get list of brightness levels for all the channels in a room.
         If room is not specified, returns brightness levels for all the rooms and channels.
         """
         return await self._query("COLOR_LEVEL", self._to_colour_level, room_id)
-    
+
     async def get_hub_info(self) -> HubInfo:
         """
         Get Rako Hub information.
         """
         await self._reconnect()
-        
+
         request = "STATUS,0\r\n"
 
         self._writer.write(str.encode(request))
         await self._writer.drain()
-        
+
         response = (await self._reader.readline()).decode().split(",")
 
-        hubInfo = HubInfo(
-            protocol_version= response[2], 
-            hub_id= response[3], 
-            mac_address= response[4], 
+        hub_info = HubInfo(
+            protocol_version= response[2],
+            hub_id= response[3],
+            mac_address= response[4],
             hub_version= response[5]
         )
-        
-        return hubInfo
+
+        return hub_info
 
     async def get_levels(self, room_id: int = None) -> List[Level]:
         """
-        Get list of brightness levels for all the channels in a room. 
+        Get list of brightness levels for all the channels in a room.
         If room is not specified, returns brightness levels for all the rooms and channels.
         """
         return await self._query("LEVEL", self._to_level, room_id)
-    
+
     async def get_rooms(self, room_id: int = None) -> List[Room]:
         """
         Get room by its id. If room_id is not specified, returns all the rooms.
         """
         return await self._query("ROOM", self._to_room, room_id)
-    
+
     async def get_scenes(self, room_id: int = None) -> List[Scene]:
         """
-        Get list of scenes for a room. 
+        Get list of scenes for a room.
         If room is not specified, returns scenes for all the rooms.
         """
         return await self._query("SCENE", self._to_scene, room_id)
-    
+
     async def set_level(self, room_id: int, channel_id: int, level: int) -> None:
         """
         Set level for a given room and channel
@@ -150,7 +152,7 @@ class RakoHub:
         Executes query and returns result
         """
         await self._reconnect()
-        
+
         if room_id is None:
             request = "QUERY,{0}\r\n".format(query)
         else:
@@ -158,7 +160,7 @@ class RakoHub:
 
         self._writer.write(str.encode(request))
         await self._writer.drain()
-        
+
         result = []
         while True:
             data = (await self._reader.readline()).decode().split(",")
@@ -167,24 +169,24 @@ class RakoHub:
             if data[0] == "QUERY_COMPLETE":
                 break
             result.append(func(data))
-        
+
         return result
 
     async def _reconnect(self) -> None:
         """
         Try to reconnect to the Rako Hub if the connection was not previously established or was closed.
         """
-        if (self._writer is None or 
-            self._writer.transport is None or 
+        if (self._writer is None or
+            self._writer.transport is None or
             self._writer.transport.is_closing()
         ):
             self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
-        
+
             request = "SUB,BASIC,V4,{0}\r\n".format(self.client_name)
-            
+
             self._writer.write(str.encode(request))
             await self._writer.drain()
-            
+
             await self._reader.readline()
 
     async def _send(self, command: str, room_id: int, channel_id: int, values: List[int]) -> None:
@@ -198,16 +200,16 @@ class RakoHub:
             request += str(val)
 
         request += "\r\n"
-        
+
         self._writer.write(str.encode(request))
         await self._writer.drain()
-        
+
         response = (await self._reader.readline()).decode().split(",")
         if response[0] == "AERROR":
             raise SendCommandError(
                 "Failed to send {0} command to room {1} and channel {2}".format(
-                    command, 
-                    room_id, 
+                    command,
+                    room_id,
                     channel_id
                 )
             )
@@ -217,6 +219,15 @@ class RakoHub:
         """
         Converts list of str to Channel.
         """
+        scenesLevel = dict()
+        i = 1
+        while i < 17:
+            if i == 16:
+                scenesLevel[i] = data[7 + i].rstrip()
+            else:
+                scenesLevel[i] = data[7 + i]
+            i += 1
+
         return Channel(
                     room_id= data[1],
                     room_tile= data[2],
@@ -225,22 +236,7 @@ class RakoHub:
                     channel_id= data[5],
                     channel_title= data[6],
                     channel_type= data[7],
-                    scene1= data[8],
-                    scene2= data[9],
-                    scene3= data[10],
-                    scene4= data[11],
-                    scene5= data[12],
-                    scene6= data[13],
-                    scene7= data[14],
-                    scene8= data[15],
-                    scene9= data[16],
-                    scene10= data[17],
-                    scene11= data[18],
-                    scene12= data[19],
-                    scene13= data[20],
-                    scene14= data[21],
-                    scene15= data[22],
-                    scene16= data[23].rstrip()
+                    scenesLevel= scenesLevel
                 )
 
     @staticmethod
@@ -290,13 +286,13 @@ class RakoHub:
         Converts list of str to Room.
         """
         return Room(
-                    room_id= data[1], 
-                    room_tile= data[2], 
-                    room_type= data[3], 
+                    room_id= data[1],
+                    room_tile= data[2],
+                    room_type= data[3],
                     room_mode= data[4].rstrip()
                 )
 
-    @staticmethod   
+    @staticmethod
     def _to_scene(data: List[str]) -> Scene:
         """
         Converts list of str to Scene.
