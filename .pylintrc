@@ -1,3 +1,4 @@
 [DESIGN]
-max-attributes = 8
 max-args = 6
+max-attributes = 8
+max-positional-arguments = 5

@@ -233,7 +233,7 @@ class RakoHub:
                     channel_id= data[5],
                     channel_title= data[6],
                     channel_type= data[7],
-                    scenes_Level= scenes_level
+                    scenes_level= scenes_level
                 )
 
     @staticmethod
