@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import asyncio
 from typing import List
-from consts import DEFAULT_PORT
-from errors import ConfigValidationError, SendCommandError
-from model import Channel, Colour, ColourLevel, HubInfo, Level, Room, Scene
+from py_rako.consts import DEFAULT_PORT
+from py_rako.errors import ConfigValidationError, SendCommandError
+from py_rako.model import Channel, Colour, ColourLevel, HubInfo, Level, Room, Scene
 
 
 class RakoHub:
