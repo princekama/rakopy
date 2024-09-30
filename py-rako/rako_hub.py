@@ -154,9 +154,9 @@ class RakoHub:
         await self._reconnect()
 
         if room_id is None:
-            request = "QUERY,{0}\r\n".format(query)
+            request = f"QUERY,{query}\r\n"
         else:
-            request = "QUERY,{0},{1}\r\n".format(query, room_id)
+            request = f"QUERY,{query},{room_id}\r\n"
 
         self._writer.write(str.encode(request))
         await self._writer.drain()
@@ -182,7 +182,7 @@ class RakoHub:
         ):
             self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
 
-            request = "SUB,BASIC,V4,{0}\r\n".format(self.client_name)
+            request = f"SUB,BASIC,V4,{self.client_name}\r\n"
 
             self._writer.write(str.encode(request))
             await self._writer.drain()
@@ -195,7 +195,7 @@ class RakoHub:
         """
         await self._reconnect()
 
-        request = "SEND,{0},{1},{2},".format(room_id, channel_id, command)
+        request = f"SEND,{room_id},{channel_id},{command},"
         for val in values:
             request += str(val)
 
@@ -207,11 +207,7 @@ class RakoHub:
         response = (await self._reader.readline()).decode().split(",")
         if response[0] == "AERROR":
             raise SendCommandError(
-                "Failed to send {0} command to room {1} and channel {2}".format(
-                    command,
-                    room_id,
-                    channel_id
-                )
+                f"Failed to send {command} command to room {room_id} and channel {channel_id}"
             )
 
     @staticmethod
@@ -219,13 +215,13 @@ class RakoHub:
         """
         Converts list of str to Channel.
         """
-        scenesLevel = dict()
+        scenes_Level = {}
         i = 1
         while i < 17:
             if i == 16:
-                scenesLevel[i] = data[7 + i].rstrip()
+                scenes_Level[i] = data[7 + i].rstrip()
             else:
-                scenesLevel[i] = data[7 + i]
+                scenes_Level[i] = data[7 + i]
             i += 1
 
         return Channel(
@@ -236,7 +232,7 @@ class RakoHub:
                     channel_id= data[5],
                     channel_title= data[6],
                     channel_type= data[7],
-                    scenesLevel= scenesLevel
+                    scenes_Level= scenes_Level
                 )
 
     @staticmethod
