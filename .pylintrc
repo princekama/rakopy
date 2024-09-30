@@ -2,3 +2,6 @@
 max-args = 6
 max-attributes = 8
 max-positional-arguments = 6
+
+[MASTER]
+init-hook='import sys; sys.path.append(".")'
