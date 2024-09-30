@@ -29,7 +29,7 @@ class Channel:
     channel_id: int
     channel_title: str
     channel_type: str
-    scenes_Level: dict
+    scenes_level: dict
 
 @dataclass
 class Level:

@@ -174,7 +174,8 @@ class RakoHub:
 
     async def _reconnect(self) -> None:
         """
-        Try to reconnect to the Rako Hub if the connection was not previously established or was closed.
+        Try to reconnect to the Rako Hub if the connection was not previously
+        established or was closed.
         """
         if (self._writer is None or
             self._writer.transport is None or
@@ -215,13 +216,13 @@ class RakoHub:
         """
         Converts list of str to Channel.
         """
-        scenes_Level = {}
+        scenes_level = {}
         i = 1
         while i < 17:
             if i == 16:
-                scenes_Level[i] = data[7 + i].rstrip()
+                scenes_level[i] = data[7 + i].rstrip()
             else:
-                scenes_Level[i] = data[7 + i]
+                scenes_level[i] = data[7 + i]
             i += 1
 
         return Channel(
@@ -232,7 +233,7 @@ class RakoHub:
                     channel_id= data[5],
                     channel_title= data[6],
                     channel_type= data[7],
-                    scenes_Level= scenes_Level
+                    scenes_Level= scenes_level
                 )
 
     @staticmethod
