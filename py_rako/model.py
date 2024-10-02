@@ -15,7 +15,7 @@ class HubInfo:
 class Room:
     """Room data model"""
     room_id: int
-    room_tile: str
+    room_title: str
     room_type: str
     room_mode: str
 
@@ -23,7 +23,7 @@ class Room:
 class Channel:
     """Channel data model"""
     room_id: int
-    room_tile: str
+    room_title: str
     room_type: str
     room_mode: str
     channel_id: int
