@@ -227,7 +227,7 @@ class RakoHub:
 
         return Channel(
                     room_id= data[1],
-                    room_tile= data[2],
+                    room_title= data[2],
                     room_type= data[3],
                     room_mode= data[4],
                     channel_id= data[5],
@@ -284,7 +284,7 @@ class RakoHub:
         """
         return Room(
                     room_id= data[1],
-                    room_tile= data[2],
+                    room_title= data[2],
                     room_type= data[3],
                     room_mode= data[4].rstrip()
                 )
