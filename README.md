@@ -1,5 +1,2 @@
 # RakoPy
-Asynchronous Python Client for Rako Controls Hub.
-
-## About
-This package allows you to integrate with your Rako Controls hub in order to control and monitor devices programmatically.
+RakoPy is a Python library that allows you to control [Rako Controls](https://rakocontrols.com) system programmatically.
