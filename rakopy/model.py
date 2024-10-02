@@ -1,4 +1,4 @@
-"""Data models for py-rako module"""
+"""Data models for rakopy module"""
 
 from dataclasses import dataclass
 

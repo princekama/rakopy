@@ -1,4 +1,4 @@
-# Python Client for Rako Controls Hub
+# RakoPy
 Asynchronous Python Client for Rako Controls Hub.
 
 ## About
