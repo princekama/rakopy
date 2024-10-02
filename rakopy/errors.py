@@ -1,4 +1,4 @@
-"""Errors for py-rako module"""
+"""Errors for rakopy module"""
 
 class ConfigValidationError(Exception):
     """Exception when configuration validation fails"""

@@ -1,11 +1,11 @@
-"""Integration class for py-rako module"""
+"""Core implementation of rakopi module"""
 from __future__ import annotations
 
 import asyncio
 from typing import List
-from py_rako.consts import DEFAULT_PORT
-from py_rako.errors import ConfigValidationError, SendCommandError
-from py_rako.model import Channel, Colour, ColourLevel, HubInfo, Level, Room, Scene
+from rakopy.consts import DEFAULT_PORT
+from rakopy.errors import ConfigValidationError, SendCommandError
+from rakopy.model import Channel, Colour, ColourLevel, HubInfo, Level, Room, Scene
 
 
 class RakoHub:
