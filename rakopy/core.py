@@ -9,7 +9,7 @@ from rakopy.errors import ConfigValidationError, SendCommandError
 from rakopy.model import Channel, ChannelLevel, Hub, Level, LevelInfo, Room, Scene
 
 
-class RakoHub:
+class RakoApi:
     """API class to integratte with Rako Hub."""
     def __init__(
         self,
@@ -26,9 +26,6 @@ class RakoHub:
 
         if not client_name:
             raise ConfigValidationError("RakoHub: client_name parameter cannot be empty.")
-
-        if "\"" in client_name:
-            raise ConfigValidationError("RakoHub: invalid character '\"' in client_name.")
 
         self.host = host
         self.port = port
@@ -90,20 +87,20 @@ class RakoHub:
         await self._send(request)
 
     async def set_rgb(
-            self, 
-            room_id: int, 
-            channel_id: int, 
-            red: int, 
-            green: int, 
+            self,
+            room_id: int,
+            channel_id: int,
+            red: int,
+            green: int,
             blue: int,
-            rgbExcludesBrightness: bool = False,
+            rgb_excludes_brightness: bool = False,
             level: int = None
         ) -> None:
         """
         Set RGB for a given room and channel.
         """
         color_send_type = "SEND_COLOR_AND_LEVEL"
-        if rgbExcludesBrightness and not level:
+        if rgb_excludes_brightness and not level:
             color_send_type = "SEND_COLOR_ONLY"
         
         request = {
@@ -115,7 +112,7 @@ class RakoHub:
                 "red": red,
                 "green": green,
                 "blue": blue,
-                "rgbExcludesBrightness": rgbExcludesBrightness,
+                "rgbExcludesBrightness": rgb_excludes_brightness,
                 "level": level
             }
         }
@@ -136,10 +133,10 @@ class RakoHub:
         await self._send(request)
 
     async def set_temperature(
-            self, 
-            room_id: int, 
-            channel_id: int, 
-            temperature: int, 
+            self,
+            room_id: int,
+            channel_id: int,
+            temperature: int,
             level: int = None
         ) -> None:
         """
@@ -213,7 +210,7 @@ class RakoHub:
 
         await self._send(request)
 
-    async def _query(self, queryType: str, func, room_id: int = None):
+    async def _query(self, query_type: str, func, room_id: int = None):
         """
         Executes query and returns result.
         """
@@ -225,7 +222,7 @@ class RakoHub:
         request = {
             "name": "query",
             "payload": {
-                "queryType": queryType,
+                "queryType": query_type,
                 "roomId": room_id
             }
         }
