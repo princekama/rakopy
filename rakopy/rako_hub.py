@@ -1,15 +1,16 @@
-"""Core implementation of rakopi module"""
+"""Core implementation of rakopi module."""
 from __future__ import annotations
 
 import asyncio
-from typing import List
+import json
+from typing import Any, List
 from rakopy.consts import DEFAULT_PORT
 from rakopy.errors import ConfigValidationError, SendCommandError
-from rakopy.model import Channel, Colour, ColourLevel, HubInfo, Level, Room, Scene
+from rakopy.model import Channel, ChannelLevel, Hub, Level, LevelInfo, Room, Scene
 
 
 class RakoHub:
-    """API class to integratte with Rako Hub"""
+    """API class to integratte with Rako Hub."""
     def __init__(
         self,
         client_name: str,
@@ -18,17 +19,16 @@ class RakoHub:
     ):
         host = host.strip()
         if not host:
-            raise ConfigValidationError("RakoHub: host parameter cannot be empty")
+            raise ConfigValidationError("RakoHub: host parameter cannot be empty.")
 
         if port < 0 or port > 65535:
-            raise ConfigValidationError("RakoHub: port should be between 0 and 65535")
+            raise ConfigValidationError("RakoHub: port should be between 0 and 65535.")
 
-        client_name = client_name.strip()
         if not client_name:
-            raise ConfigValidationError("RakoHub: client_name parameter cannot be empty")
+            raise ConfigValidationError("RakoHub: client_name parameter cannot be empty.")
 
-        if "," in client_name:
-            raise ConfigValidationError("RakoHub: invalid character ',' in client_name")
+        if "\"" in client_name:
+            raise ConfigValidationError("RakoHub: invalid character '\"' in client_name.")
 
         self.host = host
         self.port = port
@@ -37,137 +37,207 @@ class RakoHub:
         self._reader = None
         self._writer = None
 
-    async def get_channels(self, room_id: int = None) -> List[Channel]:
+    async def get_hub_status(self) -> Hub:
         """
-        Get list of channels in a room. If room is not specified, returns all channels.
-        """
-        return await self._query("CHANNEL", self._to_channel, room_id)
-
-    async def get_colours(self, room_id: int = None) -> List[Colour]:
-        """
-        Get list colour enabled channels in a room.
-        If room is not specified, returns colour enabled channels for all the rooms.
-        """
-        return await self._query("COLOR", self._to_colour, room_id)
-
-    async def get_colours_levels(self, room_id: int = None) -> List[ColourLevel]:
-        """
-        Get list of brightness levels for all the channels in a room.
-        If room is not specified, returns brightness levels for all the rooms and channels.
-        """
-        return await self._query("COLOR_LEVEL", self._to_colour_level, room_id)
-
-    async def get_hub_info(self) -> HubInfo:
-        """
-        Get Rako Hub information.
+        Get Rako Hub status.
         """
         await self._reconnect()
 
-        request = "STATUS,0\r\n"
+        request = {
+            "name": "status",
+            "payload": {}
+        }
 
-        self._writer.write(str.encode(request))
+        self._writer.write(str.encode(json.dumps(request) + "\r\n"))
         await self._writer.drain()
 
-        response = (await self._reader.readline()).decode().split(",")
+        response = await self._reader.readline()
+        json_data = json.loads(response)
 
-        hub_info = HubInfo(
-            protocol_version= response[2],
-            hub_id= response[3],
-            mac_address= response[4],
-            hub_version= response[5]
+        return Hub(
+            product_type= json_data["payload"]["productType"],
+            protocol_version= int(json_data["payload"]["protocolVersion"]),
+            id= json_data["payload"]["hubId"],
+            mac_address= json_data["payload"]["mac;"],
+            version= json_data["payload"]["hubVersion"]
         )
-
-        return hub_info
 
     async def get_levels(self, room_id: int = None) -> List[Level]:
         """
-        Get list of brightness levels for all the channels in a room.
-        If room is not specified, returns brightness levels for all the rooms and channels.
+        Get levels for all the channels in a room.
+        If room_id is not specified, returns levels for all the rooms.
         """
         return await self._query("LEVEL", self._to_level, room_id)
 
     async def get_rooms(self, room_id: int = None) -> List[Room]:
         """
-        Get room by its id. If room_id is not specified, returns all the rooms.
+        Get room by its id.
+        If room_id is not specified, returns all rooms.
         """
-        return await self._query("ROOM", self._to_room, room_id)
-
-    async def get_scenes(self, room_id: int = None) -> List[Scene]:
-        """
-        Get list of scenes for a room.
-        If room is not specified, returns scenes for all the rooms.
-        """
-        return await self._query("SCENE", self._to_scene, room_id)
+        return await self._query("SCENECHANNEL", self._to_room, room_id)
 
     async def set_level(self, room_id: int, channel_id: int, level: int) -> None:
         """
-        Set level for a given room and channel
+        Set level for a given room and channel.
         """
-        await self._send("LEVEL", room_id, channel_id, [level])
+        action = {
+            "command": "levelrate",
+            "level": level
+        }
 
-    async def set_rgb(self, room_id: int, channel_id: int, red: int, green: int, blue: int) -> None:
+        request = self._build_send_request(room_id, channel_id, action)
+
+        await self._send(request)
+
+    async def set_rgb(
+            self, 
+            room_id: int, 
+            channel_id: int, 
+            red: int, 
+            green: int, 
+            blue: int,
+            rgbExcludesBrightness: bool = False,
+            level: int = None
+        ) -> None:
         """
-        Set RGB for a given room and channel
+        Set RGB for a given room and channel.
         """
-        await self._send("RGB", room_id, channel_id, [red, green, blue])
+        color_send_type = "SEND_COLOR_AND_LEVEL"
+        if rgbExcludesBrightness and not level:
+            color_send_type = "SEND_COLOR_ONLY"
+        
+        request = {
+            "name": "send-color",
+            "payload": {
+                "room": room_id,
+                "channel": channel_id,
+                "colorSendType": color_send_type,
+                "red": red,
+                "green": green,
+                "blue": blue,
+                "rgbExcludesBrightness": rgbExcludesBrightness,
+                "level": level
+            }
+        }
+
+        await self._send(request)
 
     async def set_scene(self, room_id: int, channel_id: int, scene: int) -> None:
         """
-        Set a scene for a given room and channel
+        Set a scene for a given room and channel.
         """
-        await self._send("SCENE", room_id, channel_id, [scene])
+        action = {
+            "command": "scene",
+            "scene": scene
+        }
 
-    async def set_kelvin(self, room_id: int, channel_id: int, temperature: int) -> None:
+        request = self._build_send_request(room_id, channel_id, action)
+
+        await self._send(request)
+
+    async def set_temperature(
+            self, 
+            room_id: int, 
+            channel_id: int, 
+            temperature: int, 
+            level: int = None
+        ) -> None:
         """
-        Set a colour temperature for a given room and channel
+        Set a colour temperature and level for a given room and channel.
         """
-        await self._send("KELVIN", room_id, channel_id, [temperature])
+        color_send_type = "SEND_COLOR_ONLY"
+        if level:
+            color_send_type = "SEND_COLOR_AND_LEVEL"
+
+        request = {
+            "name": "send-colorTemp",
+            "payload": {
+                "room": room_id,
+                "channel": channel_id,
+                "colorSendType": color_send_type,
+                "temperature": temperature,
+                "level": level
+            }
+        }
+
+        await self._send(request)
 
     async def start_fading_down(self, room_id: int, channel_id: int) -> None:
         """
         Start fading down brightness for a given room and channel
         """
-        await self._send("FADE_DOWN", room_id, channel_id, [1])
+        action = {
+            "command": "fade",
+            "down": True
+        }
+
+        request = self._build_send_request(room_id, channel_id, action)
+
+        await self._send(request)
 
     async def start_fading_up(self, room_id: int, channel_id: int) -> None:
         """
-        Start fading up brightness for a given room and channel
+        Start fading up brightness for a given room and channel.
         """
-        await self._send("FADE_UP", room_id, channel_id, [1])
+        action = {
+            "command": "fade",
+            "down": False
+        }
+
+        request = self._build_send_request(room_id, channel_id, action)
+
+        await self._send(request)
 
     async def stop_fading(self, room_id: int, channel_id: int) -> None:
         """
         Stop fading brightness for a given room and channel
         """
-        await self._send("FADE_STOP", room_id, channel_id, [1])
+        action = {
+            "command": "stop"
+        }
+
+        request = self._build_send_request(room_id, channel_id, action)
+
+        await self._send(request)
 
     async def store_scene(self, room_id: int, channel_id: int, scene: int) -> None:
         """
-        Store current levels as a scene for a given room and channel
+        Store current levels as a scene for a given room and channel.
         """
-        await self._send("STORE", room_id, channel_id, [scene])
+        action = {
+            "command": "store",
+            "scene": scene
+        }
 
-    async def _query(self, query: str, func, room_id: int = None):
+        request = self._build_send_request(room_id, channel_id, action)
+
+        await self._send(request)
+
+    async def _query(self, queryType: str, func, room_id: int = None):
         """
-        Executes query and returns result
+        Executes query and returns result.
         """
         await self._reconnect()
 
         if room_id is None:
-            request = f"QUERY,{query}\r\n"
-        else:
-            request = f"QUERY,{query},{room_id}\r\n"
+            room_id = 0
+            
+        request = {
+            "name": "query",
+            "payload": {
+                "queryType": queryType,
+                "roomId": room_id
+            }
+        }
 
-        self._writer.write(str.encode(request))
+        self._writer.write(str.encode(json.dumps(request) + "\r\n"))
         await self._writer.drain()
 
+        response = (await self._reader.readline()).decode()
+        json_data = json.loads(response)
+        
         result = []
-        while True:
-            data = (await self._reader.readline()).decode().split(",")
-            if data[0] == "QUERY_HEADER":
-                continue
-            if data[0] == "QUERY_COMPLETE":
-                break
+        for data in json_data["payload"]:
             result.append(func(data))
 
         return result
@@ -182,120 +252,121 @@ class RakoHub:
             self._writer.transport.is_closing()
         ):
             self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
-
-            request = f"SUB,BASIC,V4,{self.client_name}\r\n"
-
+            
+            payload = {
+                "version": 2,
+                "client_name": self.client_name,
+                "subscriptions": []
+            }
+            request = f"SUB,JSON,{json.dumps(payload)}\r\n"
+            
             self._writer.write(str.encode(request))
             await self._writer.drain()
 
             await self._reader.readline()
 
-    async def _send(self, command: str, room_id: int, channel_id: int, values: List[int]) -> None:
+    async def _send(self, request: Any) -> None:
         """
-        Sends a command
+        Sends a command.
         """
         await self._reconnect()
 
-        request = f"SEND,{room_id},{channel_id},{command},"
-        for val in values:
-            request += str(val)
-
-        request += "\r\n"
-
-        self._writer.write(str.encode(request))
+        self._writer.write(str.encode(json.dumps(request) + "\r\n"))
         await self._writer.drain()
 
-        response = (await self._reader.readline()).decode().split(",")
-        if response[0] == "AERROR":
+        response = (await self._reader.readline()).decode()
+        json_data = json.loads(response)
+        if json_data["name"] == "error":
             raise SendCommandError(
-                f"Failed to send {command} command to room {room_id} and channel {channel_id}"
+                f"Failed to send {0} command. Error: {1}", request, json_data["payload"]
             )
 
     @staticmethod
-    def _to_channel(data: List[str]) -> Channel:
+    def _build_send_request(room_id: int, channel_id: int, action: Any):
         """
-        Converts list of str to Channel.
+        Returns a send command request.
         """
-        scenes_level = {}
-        i = 1
-        while i < 17:
-            if i == 16:
-                scenes_level[i] = data[7 + i].rstrip()
-            else:
-                scenes_level[i] = data[7 + i]
-            i += 1
-
-        return Channel(
-                    room_id= data[1],
-                    room_title= data[2],
-                    room_type= data[3],
-                    room_mode= data[4],
-                    channel_id= data[5],
-                    channel_title= data[6],
-                    channel_type= data[7],
-                    scenes_level= scenes_level
-                )
+        return {
+            "name": "send",
+            "payload": {
+                "room": room_id,
+                "channel": channel_id,
+                "action": action
+            }
+        }
 
     @staticmethod
-    def _to_colour(data: List[str]) -> Colour:
-        """
-        Converts list of str to Colour.
-        """
-        return Colour(
-                    room_id= data[1],
-                    room_title= data[2],
-                    channel_id= data[3],
-                    channel_title= data[4],
-                    type= data[5].rstrip()
-                )
-
-    @staticmethod
-    def _to_colour_level(data: List[str]) -> ColourLevel:
-        """
-        Converts list of str to ColourLevel.
-        """
-        return ColourLevel(
-                    room_id= data[1],
-                    channel_id= data[2],
-                    type= data[3],
-                    level= data[4],
-                    red_or_kelvin= data[4],
-                    green= data[5],
-                    blue= data[6].rstrip()
-                )
-
-    @staticmethod
-    def _to_level(data: List[str]) -> Level:
+    def _to_level(data: Any) -> Level:
         """
         Converts list of str to Level.
         """
+        channel_levels = []
+        for channel_level in data["channel"]:
+            level_info_data = channel_level["levelInfo"]
+            if level_info_data:
+                level_info = LevelInfo(
+                    kelvin= level_info_data["kelvin"],
+                    red= level_info_data["red"],
+                    green= level_info_data["green"],
+                    blue= level_info_data["blue"]
+                )
+            else:
+                level_info = None
+
+            channel_levels.append(
+                ChannelLevel(
+                    channel_id= channel_level["channelId"],
+                    current_level= channel_level["currentLevel"],
+                    target_level= channel_level["targetLevel"],
+                    level_info= level_info
+                )
+            )
+
         return Level(
-                    room_id= data[1],
-                    channel_id= data[2],
-                    current_scene= data[3],
-                    current_level= data[4],
-                    target_level= data[5].rstrip()
-                )
+            room_id= data["roomId"],
+            current_scene_id= data["currentScene"],
+            channel_levels= channel_levels
+        )
 
     @staticmethod
-    def _to_room(data: List[str]) -> Room:
+    def _to_room(data: Any) -> Room:
         """
-        Converts list of str to Room.
+        Converts JSON data to Room.
         """
+        channels = []
+        for channel in data["channel"]:
+            channels.append(
+                Channel(
+                    id= channel["channelId"],
+                    title= channel["title"],
+                    type= channel["type"],
+                    color_type= channel["colorType"],
+                    color_title= channel["colorTitle"],
+                    multi_channel_component= channel["multiChannelComponent"]
+                )
+            )
+
+        scenes = []
+        scenes.append(
+            Scene(
+                id= 0,
+                title= "Off"
+            )
+        )
+
+        for scene in data["scene"]:
+            scenes.append(
+                Scene(
+                    id= scene["sceneId"],
+                    title= scene["title"]
+                )
+            )
+        
         return Room(
-                    room_id= data[1],
-                    room_title= data[2],
-                    room_type= data[3],
-                    room_mode= data[4].rstrip()
-                )
-
-    @staticmethod
-    def _to_scene(data: List[str]) -> Scene:
-        """
-        Converts list of str to Scene.
-        """
-        return Scene(
-                    room_id= data[1],
-                    scene_id= data[2],
-                    scene_title= data[3].rstrip()
-                )
+            id= data["roomId"],
+            title= data["title"],
+            type= data["type"],
+            mode= data["mode"],
+            channels= channels,
+            scenes= scenes
+        )

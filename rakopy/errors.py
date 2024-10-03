@@ -1,7 +1,7 @@
-"""Errors for rakopy module"""
+"""Errors for rakopy module."""
 
 class ConfigValidationError(Exception):
-    """Exception when configuration validation fails"""
+    """Exception when configuration validation fails."""
 
 class SendCommandError(Exception):
-    """Exception when send command fails"""
+    """Exception when send command fails."""
