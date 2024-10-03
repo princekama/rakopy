@@ -102,7 +102,7 @@ class RakoApi:
         color_send_type = "SEND_COLOR_AND_LEVEL"
         if rgb_excludes_brightness and not level:
             color_send_type = "SEND_COLOR_ONLY"
-        
+
         request = {
             "name": "send-color",
             "payload": {
@@ -218,7 +218,7 @@ class RakoApi:
 
         if room_id is None:
             room_id = 0
-            
+
         request = {
             "name": "query",
             "payload": {
@@ -232,7 +232,7 @@ class RakoApi:
 
         response = (await self._reader.readline()).decode()
         json_data = json.loads(response)
-        
+
         result = []
         for data in json_data["payload"]:
             result.append(func(data))
@@ -249,14 +249,14 @@ class RakoApi:
             self._writer.transport.is_closing()
         ):
             self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
-            
+
             payload = {
                 "version": 2,
                 "client_name": self.client_name,
                 "subscriptions": []
             }
             request = f"SUB,JSON,{json.dumps(payload)}\r\n"
-            
+
             self._writer.write(str.encode(request))
             await self._writer.drain()
 
@@ -358,7 +358,7 @@ class RakoApi:
                     title= scene["title"]
                 )
             )
-        
+
         return Room(
             id= data["roomId"],
             title= data["title"],

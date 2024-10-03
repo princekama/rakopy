@@ -1,7 +1,7 @@
 [DESIGN]
-max-args = 6
+max-args = 8
 max-attributes = 8
-max-positional-arguments = 6
+max-positional-arguments = 8
 
 [MASTER]
 init-hook='import sys; sys.path.append(".")'
