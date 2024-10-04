@@ -7,14 +7,14 @@ from typing import Any, AsyncGenerator, List
 from rakopy.consts import DEFAULT_PORT
 from rakopy.errors import ConfigValidationError, SendCommandError
 from rakopy.model import (
-    Channel, 
-    ChannelLevel, 
-    HubStatus, 
-    Level, 
-    LevelChangedEvent, 
-    LevelInfo, 
-    Room, 
-    Scene, 
+    Channel,
+    ChannelLevel,
+    HubStatus,
+    Level,
+    LevelChangedEvent,
+    LevelInfo,
+    Room,
+    Scene,
     SceneChangedEvent
 )
 
