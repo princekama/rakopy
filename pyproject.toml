@@ -4,7 +4,6 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rakopy"
-dynamic = ["version"]
 authors = [
   { name="@princekama" },
 ]
@@ -20,3 +19,6 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/princekama/rakopy"
 Issues = "https://github.com/princekama/rakopy/issues"
+
+[tool.hatch.version]
+path = "src/rakopy/__version__.py"

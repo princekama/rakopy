@@ -26,6 +26,12 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: '3.12'
+    - name: Generate version file
+      run: |
+        echo "__version__ = \"$RELEASE_TAG\"" > src/rakopy/__version__.py
+        cat src/rakopy/__version__.py
+      env:
+        RELEASE_TAG: ${{ github.event.release.tag_name }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
