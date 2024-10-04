@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rakopy"
+dynamic = ["version"]
+authors = [
+  { name="Prince Kamalanathan" },
+]
+description = "RakoPy is a Python library that allows you to control Rako Controls system programmatically."
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/princekama/rakopy"
+Issues = "https://github.com/princekama/rakopy/issues"
