@@ -4,6 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rakopy"
+dynamic = ["version"]
 authors = [
   { name="@princekama" },
 ]
