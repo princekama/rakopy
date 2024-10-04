@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import List
 
 @dataclass
-class Hub:
-    """Hub data model."""
+class HubStatus:
+    """Hub status data model."""
     product_type: str
     protocol_version: int
     id: str

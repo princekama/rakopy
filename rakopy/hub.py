@@ -6,8 +6,17 @@ import json
 from typing import Any, AsyncGenerator, List
 from rakopy.consts import DEFAULT_PORT
 from rakopy.errors import ConfigValidationError, SendCommandError
-from rakopy.model import Channel, ChannelLevel, Hub, Level, LevelChangedEvent, LevelInfo, Room, Scene, SceneChangedEvent
-
+from rakopy.model import (
+    Channel, 
+    ChannelLevel, 
+    HubStatus, 
+    Level, 
+    LevelChangedEvent, 
+    LevelInfo, 
+    Room, 
+    Scene, 
+    SceneChangedEvent
+)
 
 class Hub:
     """Class to integrate with Rako Hub."""
@@ -34,7 +43,7 @@ class Hub:
         self._reader = None
         self._writer = None
 
-    async def get_hub_status(self) -> Hub:
+    async def get_hub_status(self) -> HubStatus:
         """
         Get Rako Hub status.
         """
@@ -51,7 +60,7 @@ class Hub:
         response = await self._reader.readline()
         json_data = json.loads(response)
 
-        return Hub(
+        return HubStatus(
             product_type= json_data["payload"]["productType"],
             protocol_version= int(json_data["payload"]["protocolVersion"]),
             id= json_data["payload"]["hubId"],
