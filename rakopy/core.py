@@ -9,7 +9,7 @@ from rakopy.errors import ConfigValidationError, SendCommandError
 from rakopy.model import Channel, ChannelLevel, Hub, Level, LevelInfo, Room, Scene
 
 
-class RakoApi:
+class RakoHub:
     """API class to integratte with Rako Hub."""
     def __init__(
         self,
