@@ -60,3 +60,21 @@ class Level:
     room_id: int
     current_scene_id: int
     channel_levels: List[ChannelLevel]
+
+@dataclass
+class LevelChangedEvent:
+    """Level changed event data model."""
+    room_id: int
+    channel_id: int
+    current_level: int
+    target_level: int
+    time_to_take: int
+    temporary: bool
+
+@dataclass
+class SceneChangedEvent:
+    """Scene changed event data model."""
+    room_id: int
+    channel_id: int
+    scene_id: int
+    active_scene_id: int

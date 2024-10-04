@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Any, List
+from typing import Any, AsyncGenerator, List
 from rakopy.consts import DEFAULT_PORT
 from rakopy.errors import ConfigValidationError, SendCommandError
-from rakopy.model import Channel, ChannelLevel, Hub, Level, LevelInfo, Room, Scene
+from rakopy.model import Channel, ChannelLevel, Hub, Level, LevelChangedEvent, LevelInfo, Room, Scene, SceneChangedEvent
 
 
 class Hub:
@@ -209,6 +209,44 @@ class Hub:
         request = self._build_send_request(room_id, channel_id, action)
 
         await self._send(request)
+
+    async def get_events(self) -> AsyncGenerator:
+        """
+        Subscribe and listen to events from Hub asynchronously.
+        """
+        reader, writer = await asyncio.open_connection(self.host, self.port)
+
+        payload = {
+            "version": 2,
+            "client_name": self.client_name,
+            "subscriptions": ["TRACKER"]
+        }
+        request = f"SUB,JSON,{json.dumps(payload)}\r\n"
+
+        writer.write(str.encode(request))
+        await writer.drain()
+
+        while True:
+            response = await reader.readline()
+            json_data = json.loads(response)
+            if json_data["name"] == "tracker":
+                if json_data["type"] == "scene":
+                    yield SceneChangedEvent(
+                        room_id= json_data["payload"]["roomId"],
+                        channel_id= json_data["payload"]["channelId"],
+                        scene_id= json_data["payload"]["scene"],
+                        active_scene_id= json_data["payload"]["activeScene"],
+                    )
+                elif json_data["type"] == "level":
+                    level_changed_event = LevelChangedEvent(
+                        room_id= json_data["payload"]["roomId"],
+                        channel_id= json_data["payload"]["channelId"],
+                        current_level= json_data["payload"]["currentLevel"],
+                        target_level= json_data["payload"]["targetLevel"],
+                        time_to_take= json_data["payload"]["timeToTake"],
+                        temporary= json_data["payload"]["temporary"],
+                    )
+                    yield level_changed_event
 
     async def _query(self, query_type: str, func, room_id: int = None):
         """
