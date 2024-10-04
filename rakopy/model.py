@@ -1,68 +1,80 @@
-"""Data models for rakopy module"""
+"""Data models for rakopy module."""
 
 from dataclasses import dataclass
-
+from typing import List
 
 @dataclass
-class HubInfo:
-    """Hub information data model"""
+class HubStatus:
+    """Hub status data model."""
+    product_type: str
     protocol_version: int
-    hub_id: str
+    id: str
     mac_address: str
-    hub_version: str
-
-@dataclass
-class Room:
-    """Room data model"""
-    room_id: int
-    room_title: str
-    room_type: str
-    room_mode: str
+    version: str
 
 @dataclass
 class Channel:
-    """Channel data model"""
-    room_id: int
-    room_title: str
-    room_type: str
-    room_mode: str
-    channel_id: int
-    channel_title: str
-    channel_type: str
-    scenes_level: dict
-
-@dataclass
-class Level:
-    """Room and channel level data model"""
-    room_id: int
-    channel_id: int
-    current_scene: int
-    current_level: int
-    target_level: int
+    """Channel data model."""
+    id: int
+    title: str
+    type: str
+    color_type: str
+    color_title: str
+    multi_channel_component: str
 
 @dataclass
 class Scene:
-    """Scene data model"""
-    room_id: int
-    scene_id: int
-    scene_title: int
+    """Scene data model."""
+    id: int
+    title: int
 
 @dataclass
-class Colour:
-    """Room and channel colour data model"""
-    room_id: int
-    room_title: str
-    channel_id: int
-    channel_title: str
+class Room:
+    """Room data model."""
+    id: int
+    title: str
     type: str
+    mode: str
+    channels: List[Channel]
+    scenes: List[Scene]
 
 @dataclass
-class ColourLevel:
-    """Room and channel colour level data model"""
-    room_id: int
-    channel_id: int
-    type: str
-    level: int
-    red_or_kelvin: int
+class LevelInfo:
+    """Channel level info data model."""
+    kelvin: int
+    red: int
     green: int
     blue: int
+
+@dataclass
+class ChannelLevel:
+    """Channel level data model."""
+    channel_id: int
+    current_level: int
+    target_level: int
+    level_info: LevelInfo
+
+@dataclass
+class Level:
+    """Level data model."""
+    room_id: int
+    current_scene_id: int
+    channel_levels: List[ChannelLevel]
+
+@dataclass
+class LevelChangedEvent:
+    """Level changed event data model."""
+    room_id: int
+    channel_id: int
+    current_level: int
+    target_level: int
+    time_to_take: int
+    temporary: bool
+
+@dataclass
+class SceneChangedEvent:
+    """Scene changed event data model."""
+    room_id: int
+    channel_id: int
+    scene_id: int
+    active_scene_id: int
