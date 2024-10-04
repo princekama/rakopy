@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "rakopy"
 dynamic = ["version"]
 authors = [
-  { name="Prince Kamalanathan" },
+  { name="@princekama" },
 ]
 description = "RakoPy is a Python library that allows you to control Rako Controls system programmatically."
 readme = "README.md"
