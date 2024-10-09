@@ -61,11 +61,11 @@ class Hub:
         json_data = json.loads(response)
 
         return HubStatus(
-            product_type= json_data["payload"]["productType"],
-            protocol_version= int(json_data["payload"]["protocolVersion"]),
-            id= json_data["payload"]["hubId"],
-            mac_address= json_data["payload"]["mac;"],
-            version= json_data["payload"]["hubVersion"]
+            product_type = json_data["payload"]["productType"],
+            protocol_version = int(json_data["payload"]["protocolVersion"]),
+            id = json_data["payload"]["hubId"],
+            mac_address = json_data["payload"]["mac;"],
+            version = json_data["payload"]["hubVersion"]
         )
 
     async def get_levels(self, room_id: int = None) -> List[Level]:
@@ -241,19 +241,19 @@ class Hub:
             if json_data["name"] == "tracker":
                 if json_data["type"] == "scene":
                     yield SceneChangedEvent(
-                        room_id= json_data["payload"]["roomId"],
-                        channel_id= json_data["payload"]["channelId"],
-                        scene_id= json_data["payload"]["scene"],
-                        active_scene_id= json_data["payload"]["activeScene"],
+                        room_id = json_data["payload"]["roomId"],
+                        channel_id = json_data["payload"]["channelId"],
+                        scene_id = json_data["payload"]["scene"],
+                        active_scene_id = json_data["payload"]["activeScene"],
                     )
                 elif json_data["type"] == "level":
                     level_changed_event = LevelChangedEvent(
-                        room_id= json_data["payload"]["roomId"],
-                        channel_id= json_data["payload"]["channelId"],
-                        current_level= json_data["payload"]["currentLevel"],
-                        target_level= json_data["payload"]["targetLevel"],
-                        time_to_take= json_data["payload"]["timeToTake"],
-                        temporary= json_data["payload"]["temporary"],
+                        room_id = json_data["payload"]["roomId"],
+                        channel_id = json_data["payload"]["channelId"],
+                        current_level = json_data["payload"]["currentLevel"],
+                        target_level = json_data["payload"]["targetLevel"],
+                        time_to_take = json_data["payload"]["timeToTake"],
+                        temporary = json_data["payload"]["temporary"],
                     )
                     yield level_changed_event
 
@@ -349,27 +349,27 @@ class Hub:
             level_info_data = channel_level["levelInfo"]
             if level_info_data:
                 level_info = LevelInfo(
-                    kelvin= level_info_data["kelvin"],
-                    red= level_info_data["red"],
-                    green= level_info_data["green"],
-                    blue= level_info_data["blue"]
+                    kelvin = level_info_data["kelvin"],
+                    red = level_info_data["red"],
+                    green = level_info_data["green"],
+                    blue = level_info_data["blue"]
                 )
             else:
                 level_info = None
 
             channel_levels.append(
                 ChannelLevel(
-                    channel_id= channel_level["channelId"],
-                    current_level= channel_level["currentLevel"],
-                    target_level= channel_level["targetLevel"],
-                    level_info= level_info
+                    channel_id = channel_level["channelId"],
+                    current_level = channel_level["currentLevel"],
+                    target_level = channel_level["targetLevel"],
+                    level_info = level_info
                 )
             )
 
         return Level(
-            room_id= data["roomId"],
-            current_scene_id= data["currentScene"],
-            channel_levels= channel_levels
+            room_id = data["roomId"],
+            current_scene_id = data["currentScene"],
+            channel_levels = channel_levels
         )
 
     @staticmethod
@@ -381,36 +381,36 @@ class Hub:
         for channel in data["channel"]:
             channels.append(
                 Channel(
-                    id= channel["channelId"],
-                    title= channel["title"],
-                    type= channel["type"],
-                    color_type= channel["colorType"],
-                    color_title= channel["colorTitle"],
-                    multi_channel_component= channel["multiChannelComponent"]
+                    id = channel["channelId"],
+                    title = channel["title"],
+                    type = channel["type"],
+                    color_type = channel["colorType"],
+                    color_title = channel["colorTitle"],
+                    multi_channel_component = channel["multiChannelComponent"]
                 )
             )
 
         scenes = []
         scenes.append(
             Scene(
-                id= 0,
-                title= "Off"
+                id = 0,
+                title = "Off"
             )
         )
 
         for scene in data["scene"]:
             scenes.append(
                 Scene(
-                    id= scene["sceneId"],
-                    title= scene["title"]
+                    id = scene["sceneId"],
+                    title = scene["title"]
                 )
             )
 
         return Room(
-            id= data["roomId"],
-            title= data["title"],
-            type= data["type"],
-            mode= data["mode"],
-            channels= channels,
-            scenes= scenes
+            id = data["roomId"],
+            title = data["title"],
+            type = data["type"],
+            mode = data["mode"],
+            channels = channels,
+            scenes = scenes
         )
