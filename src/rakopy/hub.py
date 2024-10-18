@@ -40,6 +40,7 @@ class Hub:
         self.port = port
         self.client_name = client_name
 
+        self._lock = asyncio.Lock()
         self._reader = None
         self._writer = None
 
@@ -263,51 +264,59 @@ class Hub:
         """
         await self._reconnect()
 
-        if room_id is None:
-            room_id = 0
+        await self._lock.acquire()
+        try:
+            if room_id is None:
+                room_id = 0
 
-        request = {
-            "name": "query",
-            "payload": {
-                "queryType": query_type,
-                "roomId": room_id
+            request = {
+                "name": "query",
+                "payload": {
+                    "queryType": query_type,
+                    "roomId": room_id
+                }
             }
-        }
 
-        self._writer.write(str.encode(json.dumps(request) + "\r\n"))
-        await self._writer.drain()
+            self._writer.write(str.encode(json.dumps(request) + "\r\n"))
+            await self._writer.drain()
 
-        response = (await self._reader.readline()).decode()
-        json_data = json.loads(response)
+            response = (await self._reader.readline()).decode()
+            json_data = json.loads(response)
 
-        result = []
-        for data in json_data["payload"]:
-            result.append(func(data))
+            result = []
+            for data in json_data["payload"]:
+                result.append(func(data))
 
-        return result
+            return result
+        finally:
+            self._lock.release()
 
     async def _reconnect(self) -> None:
         """
         Try to reconnect to the Rako Hub if the connection was not previously
         established or was closed.
         """
-        if (self._writer is None or
-            self._writer.transport is None or
-            self._writer.transport.is_closing()
-        ):
-            self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
+        await self._lock.acquire()
+        try:
+            if (self._writer is None or
+                self._writer.transport is None or
+                self._writer.transport.is_closing()
+            ):
+                self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
 
-            payload = {
-                "version": 2,
-                "client_name": self.client_name,
-                "subscriptions": []
-            }
-            request = f"SUB,JSON,{json.dumps(payload)}\r\n"
+                payload = {
+                    "version": 2,
+                    "client_name": self.client_name,
+                    "subscriptions": []
+                }
+                request = f"SUB,JSON,{json.dumps(payload)}\r\n"
 
-            self._writer.write(str.encode(request))
-            await self._writer.drain()
+                self._writer.write(str.encode(request))
+                await self._writer.drain()
 
-            await self._reader.readline()
+                await self._reader.readline()
+        finally:
+            self._lock.release()
 
     async def _send(self, request: Any) -> None:
         """
@@ -315,15 +324,19 @@ class Hub:
         """
         await self._reconnect()
 
-        self._writer.write(str.encode(json.dumps(request) + "\r\n"))
-        await self._writer.drain()
+        await self._lock.acquire()
+        try:
+            self._writer.write(str.encode(json.dumps(request) + "\r\n"))
+            await self._writer.drain()
 
-        response = (await self._reader.readline()).decode()
-        json_data = json.loads(response)
-        if json_data["name"] == "error":
-            raise SendCommandError(
-                f"Failed to send {0} command. Error: {1}", request, json_data["payload"]
-            )
+            response = (await self._reader.readline()).decode()
+            json_data = json.loads(response)
+            if json_data["name"] == "error":
+                raise SendCommandError(
+                    f"Failed to send {0} command. Error: {1}", request, json_data["payload"]
+                )
+        finally:
+            self._lock.release()
 
     @staticmethod
     def _build_send_request(room_id: int, channel_id: int, action: Any):
