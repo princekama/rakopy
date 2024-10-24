@@ -1,6 +1,8 @@
 """Core implementation of rakopi module."""
 from __future__ import annotations
 
+import logging
+
 import asyncio
 import json
 from typing import Any, AsyncGenerator, List
@@ -17,6 +19,9 @@ from rakopy.model import (
     Scene,
     SceneChangedEvent
 )
+
+_LOGGER = logging.getLogger(__name__)
+
 
 class Hub:
     """Class to integrate with Rako Hub."""
@@ -224,39 +229,50 @@ class Hub:
         """
         Subscribe and listen to events from Hub asynchronously.
         """
-        reader, writer = await asyncio.open_connection(self.host, self.port)
-
-        payload = {
-            "version": 2,
-            "client_name": self.client_name,
-            "subscriptions": ["TRACKER"]
-        }
-        request = f"SUB,JSON,{json.dumps(payload)}\r\n"
-
-        writer.write(str.encode(request))
-        await writer.drain()
+        reader: asyncio.StreamReader = None
+        writer: asyncio.StreamWriter = None
 
         while True:
-            response = await reader.readline()
-            json_data = json.loads(response)
-            if json_data["name"] == "tracker":
-                if json_data["type"] == "scene":
-                    yield SceneChangedEvent(
-                        room_id = json_data["payload"]["roomId"],
-                        channel_id = json_data["payload"]["channelId"],
-                        scene_id = json_data["payload"]["scene"],
-                        active_scene_id = json_data["payload"]["activeScene"],
-                    )
-                elif json_data["type"] == "level":
-                    level_changed_event = LevelChangedEvent(
-                        room_id = json_data["payload"]["roomId"],
-                        channel_id = json_data["payload"]["channelId"],
-                        current_level = json_data["payload"]["currentLevel"],
-                        target_level = json_data["payload"]["targetLevel"],
-                        time_to_take = json_data["payload"]["timeToTake"],
-                        temporary = json_data["payload"]["temporary"],
-                    )
-                    yield level_changed_event
+            if (writer is None or
+                writer.transport is None or
+                writer.transport.is_closing()
+            ):
+                reader, writer = await asyncio.open_connection(self.host, self.port)
+
+            payload = {
+                "version": 2,
+                "client_name": self.client_name,
+                "subscriptions": ["TRACKER"]
+            }
+            request = f"SUB,JSON,{json.dumps(payload)}\r\n"
+
+            writer.write(str.encode(request))
+            await writer.drain()
+
+            try:
+                while True:
+                    response = await reader.readline()
+                    json_data = json.loads(response)
+                    if json_data["name"] == "tracker":
+                        if json_data["type"] == "scene":
+                            yield SceneChangedEvent(
+                                room_id = json_data["payload"]["roomId"],
+                                channel_id = json_data["payload"]["channelId"],
+                                scene_id = json_data["payload"]["scene"],
+                                active_scene_id = json_data["payload"]["activeScene"],
+                            )
+                        elif json_data["type"] == "level":
+                            level_changed_event = LevelChangedEvent(
+                                room_id = json_data["payload"]["roomId"],
+                                channel_id = json_data["payload"]["channelId"],
+                                current_level = json_data["payload"]["currentLevel"],
+                                target_level = json_data["payload"]["targetLevel"],
+                                time_to_take = json_data["payload"]["timeToTake"],
+                                temporary = json_data["payload"]["temporary"],
+                            )
+                            yield level_changed_event
+            except ConnectionError as e:
+                _LOGGER.exception("Unexpected exception: %s", repr(e))
 
     async def _query(self, query_type: str, func, room_id: int = None):
         """
