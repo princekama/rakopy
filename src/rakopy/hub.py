@@ -231,7 +231,7 @@ class Hub:
         """
         reader: asyncio.StreamReader = None
         writer: asyncio.StreamWriter = None
-        
+
         while True:
             if (writer is None or
                 writer.transport is None or
@@ -271,7 +271,7 @@ class Hub:
                                 temporary = json_data["payload"]["temporary"],
                             )
                             yield level_changed_event
-            except Exception as e:
+            except ConnectionError as e:
                 _LOGGER.exception("Unexpected exception: %s", repr(e))
 
     async def _query(self, query_type: str, func, room_id: int = None):
