@@ -407,15 +407,24 @@ class Hub:
         Converts JSON data to Room.
         """
         channels = []
+        channel1P = True
+        colorType1 = None
+        colorTitle1 = None
+        multiChannelComponent1 = None
         for channel in data["channel"]:
+            if channel1P:
+                channel1P = False
+                colorType1 = channel.get("colorType", None)
+                colorTitle1 = channel.get("colorTitle", None)
+                multiChannelComponent1 = channel.get("multiChannelComponent", None)
             channels.append(
                 Channel(
                     id = channel["channelId"],
                     title = channel["title"],
                     type = channel["type"],
-                    color_type = channel["colorType"],
-                    color_title = channel["colorTitle"],
-                    multi_channel_component = channel["multiChannelComponent"]
+                    color_type = channel.get("colorType", colorType1),
+                    color_title = channel.get("colorTitle", colorTitle1),
+                    multi_channel_component = channel.get("multiChannelComponent", multiChannelComponent1)
                 )
             )
 
