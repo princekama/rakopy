@@ -425,7 +425,8 @@ class Hub:
                     type = channel["type"],
                     color_type = channel.get("colorType", color_type_1),
                     color_title = channel.get("colorTitle", color_title_1),
-                    multi_channel_component = channel.get("multiChannelComponent", multi_channel_component_1)
+                    multi_channel_component = channel.get(
+                        "multiChannelComponent", multi_channel_component_1)
                 )
             )
 
