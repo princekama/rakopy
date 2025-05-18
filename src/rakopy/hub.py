@@ -450,7 +450,7 @@ class Hub:
             id = data["roomId"],
             title = data["title"],
             type = data["type"],
-            mode = data["mode"],
+            mode = data.get("mode", None),
             channels = channels,
             scenes = scenes
         )
