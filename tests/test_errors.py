@@ -1,10 +1,8 @@
 """Tests for rakopy.errors."""
-
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+# pylint: disable=missing-class-docstring,missing-function-docstring
 
 import pytest
+
 from rakopy.errors import ConfigValidationError, SendCommandError
 
 

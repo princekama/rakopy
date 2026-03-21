@@ -1,14 +1,11 @@
 """Shared fixtures for rakopy tests."""
+# pylint: disable=protected-access
 
 import asyncio
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from rakopy.hub import Hub
 

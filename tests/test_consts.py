@@ -1,8 +1,5 @@
 """Tests for rakopy.consts."""
-
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+# pylint: disable=missing-function-docstring
 
 from rakopy.consts import DEFAULT_PORT
 

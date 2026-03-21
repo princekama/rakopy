@@ -1,8 +1,6 @@
 """Tests for rakopy.model dataclasses."""
-
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+# pylint: disable=missing-class-docstring,missing-function-docstring
+# pylint: disable=too-few-public-methods,duplicate-code
 
 from rakopy.model import (
     Channel,

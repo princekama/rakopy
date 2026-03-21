@@ -1,20 +1,20 @@
 """Tests for rakopy.hub.Hub."""
+# pylint: disable=missing-class-docstring,missing-function-docstring
+# pylint: disable=protected-access,too-few-public-methods,duplicate-code
 
-import asyncio
 import json
-from unittest.mock import AsyncMock, MagicMock, patch, call
-
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+from unittest.mock import AsyncMock, patch
 
 import pytest
+
 from rakopy.hub import Hub
 from rakopy.consts import DEFAULT_PORT
 from rakopy.errors import ConfigValidationError, SendCommandError
 from rakopy.model import (
-    Channel, ChannelLevel, HubStatus, Level,
-    LevelChangedEvent, LevelInfo, Room, Scene, SceneChangedEvent,
+    HubStatus,
+    LevelChangedEvent,
+    Scene,
+    SceneChangedEvent,
 )
 from tests.conftest import make_reader, make_writer, json_line
 
@@ -234,7 +234,7 @@ class TestToRoom:
             "scene": [],
         }
         room = Hub._to_room(data)
-        assert room.channels == []
+        assert not room.channels
         assert len(room.scenes) == 1  # only the Off scene
 
 
