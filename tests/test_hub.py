@@ -730,7 +730,20 @@ class TestSetTemperature:
         assert sent_data["payload"]["level"] == 200
         assert sent_data["payload"]["temperature"] == 2700
 
+    @pytest.mark.asyncio
+    async def test_set_temperature_with_zero_level(self):
+        hub = Hub("test_client", "192.168.1.42")
 
+        with patch.object(hub, "_reconnect", new_callable=AsyncMock):
+            _patch_connection(hub, [_send_ok()])
+            await hub.set_temperature(
+                room_id=16, channel_id=2, temperature=2700, level=0
+            )
+
+        sent_data = json.loads(hub._writer.write.call_args[0][0].decode().strip())
+        assert sent_data["payload"]["colorSendType"] == "SEND_COLOR_AND_LEVEL"
+        assert sent_data["payload"]["level"] == 0
+        assert sent_data["payload"]["temperature"] == 2700
 # ---------------------------------------------------------------------------
 # Hub.start_fading_up / start_fading_down / stop_fading
 # ---------------------------------------------------------------------------
