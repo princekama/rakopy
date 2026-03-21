@@ -124,9 +124,9 @@ class TestChannelLevel:
     def test_with_level_info(self):
         info = LevelInfo(kelvin=2700, red=0, green=0, blue=0)
         channel_level = ChannelLevel(
-            channel_id=1, 
-            current_level=50, 
-            target_level=50, 
+            channel_id=1,
+            current_level=50,
+            target_level=50,
             level_info=info)
             
         assert channel_level.channel_id == 1
@@ -136,9 +136,9 @@ class TestChannelLevel:
 
     def test_without_level_info(self):
         channel_level = ChannelLevel(
-            channel_id=0, 
-            current_level=127, 
-            target_level=127, 
+            channel_id=0,
+            current_level=127,
+            target_level=127,
             level_info=None)
             
         assert channel_level.level_info is None
