@@ -674,7 +674,23 @@ class TestSetRgb:
         assert sent_data["payload"]["colorSendType"] == "SEND_COLOR_AND_LEVEL"
         assert sent_data["payload"]["level"] == 200
 
+    @pytest.mark.asyncio
+    async def test_set_rgb_with_zero_level(self):
+        """Explicit level=0 should still use SEND_COLOR_AND_LEVEL."""
+        hub = Hub("test_client", "192.168.1.42")
 
+        with patch.object(hub, "_reconnect", new_callable=AsyncMock):
+            _patch_connection(hub, [_send_ok()])
+            await hub.set_rgb(
+                room_id=16, channel_id=2,
+                red=255, green=0, blue=128,
+                rgb_excludes_brightness=True,
+                level=0,
+            )
+
+        sent_data = json.loads(hub._writer.write.call_args[0][0].decode().strip())
+        assert sent_data["payload"]["colorSendType"] == "SEND_COLOR_AND_LEVEL"
+        assert sent_data["payload"]["level"] == 0
 # ---------------------------------------------------------------------------
 # Hub.set_temperature
 # ---------------------------------------------------------------------------
