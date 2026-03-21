@@ -9,7 +9,7 @@ from tests.helpers import make_reader, make_writer
 
 @pytest.fixture
 def hub():
-    """Return a Hub instance with mocked connection."""
+    """Return an unconnected Hub instance for tests."""
     return Hub("test_client", "192.168.1.42")
 
 
