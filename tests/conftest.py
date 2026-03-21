@@ -41,7 +41,7 @@ def hub():
 @pytest.fixture
 def connected_hub():
     """Return a Hub that appears already connected (writer.transport exists)."""
-    h = Hub("test_client", "192.168.1.42")
-    h._writer = make_writer()
-    h._reader = make_reader([])
-    return h
+    hub_instance = Hub("test_client", "192.168.1.42")
+    hub_instance._writer = make_writer()
+    hub_instance._reader = make_reader([])
+    return hub_instance
