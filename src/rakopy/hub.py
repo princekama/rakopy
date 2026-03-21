@@ -115,7 +115,7 @@ class Hub:
         Set RGB for a given room and channel.
         """
         color_send_type = "SEND_COLOR_AND_LEVEL"
-        if rgb_excludes_brightness and not level:
+        if rgb_excludes_brightness and level is None:
             color_send_type = "SEND_COLOR_ONLY"
 
         request = {
@@ -158,7 +158,7 @@ class Hub:
         Set a colour temperature and level for a given room and channel.
         """
         color_send_type = "SEND_COLOR_ONLY"
-        if level:
+        if level is not None:
             color_send_type = "SEND_COLOR_AND_LEVEL"
 
         request = {
