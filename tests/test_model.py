@@ -128,7 +128,7 @@ class TestChannelLevel:
             current_level=50,
             target_level=50,
             level_info=info)
-            
+
         assert channel_level.channel_id == 1
         assert channel_level.current_level == 50
         assert channel_level.target_level == 50
@@ -140,7 +140,7 @@ class TestChannelLevel:
             current_level=127,
             target_level=127,
             level_info=None)
-            
+
         assert channel_level.level_info is None
 
 
