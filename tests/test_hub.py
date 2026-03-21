@@ -16,7 +16,7 @@ from rakopy.model import (
     Scene,
     SceneChangedEvent,
 )
-from tests.conftest import make_reader, make_writer, json_line
+from tests.helpers import make_reader, make_writer, json_line
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +70,7 @@ class TestHubInit:
 # Helpers
 # ---------------------------------------------------------------------------
 def _patch_connection(hub, reader_responses):
-    """Patch a hub so _reconnect is a no-op and reader/writer are mocked."""
+    """Set mock reader/writer on a hub that already has _reconnect patched."""
     hub._writer = make_writer()
     hub._reader = make_reader(reader_responses)
 
