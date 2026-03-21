@@ -4,4 +4,4 @@ max-attributes = 8
 max-positional-arguments = 8
 
 [MASTER]
-init-hook='import sys; sys.path.append("."); sys.path.append("src")'
+init-hook='import sys; sys.path.insert(0, "src"); sys.path.insert(0, ".")'
