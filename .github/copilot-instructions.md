@@ -26,7 +26,7 @@ pytest tests/test_hub.py::TestSetRgb -v
 pytest tests/test_hub.py::TestSetRgb::test_set_rgb_default -v
 ```
 
-Always use a virtual environment (`.venv`) when running commands. There is no build step — the library is pure Python. The project uses Hatch as its build backend (`pyproject.toml`), but editable installs require `src/rakopy/__version__.py` to exist. Tests use `sys.path.insert` to find `src/rakopy` directly, so no install is needed to run them.
+Always use a virtual environment (`.venv`) when running commands. There is no build step — the library is pure Python. The project uses Hatch as its build backend (`pyproject.toml`), but editable installs require `src/rakopy/__version__.py` to exist. Pytest is configured via `[tool.pytest.ini_options] pythonpath = ["src"]` in `pyproject.toml`, so tests can import `rakopy` directly from `src/` without installing the package.
 
 ## Architecture
 
