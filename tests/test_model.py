@@ -31,19 +31,19 @@ class TestHubStatus:
         assert status.version == "3.1.5"
 
     def test_equality(self):
-        a = HubStatus("Hub", 2, "id1", "mac1", "3.0.0")
-        b = HubStatus("Hub", 2, "id1", "mac1", "3.0.0")
-        assert a == b
+        hub_status_a = HubStatus("Hub", 2, "id1", "mac1", "3.0.0")
+        hub_status_b = HubStatus("Hub", 2, "id1", "mac1", "3.0.0")
+        assert hub_status_a == hub_status_b
 
     def test_inequality(self):
-        a = HubStatus("Hub", 2, "id1", "mac1", "3.0.0")
-        b = HubStatus("Hub", 2, "id2", "mac1", "3.0.0")
-        assert a != b
+        hub_status_a = HubStatus("Hub", 2, "id1", "mac1", "3.0.0")
+        hub_status_b = HubStatus("Hub", 2, "id2", "mac1", "3.0.0")
+        assert hub_status_a != hub_status_b
 
 
 class TestChannel:
     def test_creation(self):
-        ch = Channel(
+        channel = Channel(
             id=1,
             title="Ceiling",
             type="SLIDER",
@@ -51,15 +51,15 @@ class TestChannel:
             color_title="Ceiling",
             multi_channel_component=None,
         )
-        assert ch.id == 1
-        assert ch.title == "Ceiling"
-        assert ch.type == "SLIDER"
-        assert ch.color_type == "RGB"
-        assert ch.color_title == "Ceiling"
-        assert ch.multi_channel_component is None
+        assert channel.id == 1
+        assert channel.title == "Ceiling"
+        assert channel.type == "SLIDER"
+        assert channel.color_type == "RGB"
+        assert channel.color_title == "Ceiling"
+        assert channel.multi_channel_component is None
 
     def test_multi_channel_component(self):
-        ch = Channel(
+        channel = Channel(
             id=8,
             title="Red Wall",
             type="SLIDER",
@@ -67,7 +67,7 @@ class TestChannel:
             color_title="Wall",
             multi_channel_component="RED",
         )
-        assert ch.multi_channel_component == "RED"
+        assert channel.multi_channel_component == "RED"
 
 
 class TestScene:
@@ -123,15 +123,15 @@ class TestLevelInfo:
 class TestChannelLevel:
     def test_with_level_info(self):
         info = LevelInfo(kelvin=2700, red=0, green=0, blue=0)
-        cl = ChannelLevel(channel_id=1, current_level=50, target_level=50, level_info=info)
-        assert cl.channel_id == 1
-        assert cl.current_level == 50
-        assert cl.target_level == 50
-        assert cl.level_info.kelvin == 2700
+        channel_level = ChannelLevel(channel_id=1, current_level=50, target_level=50, level_info=info)
+        assert channel_level.channel_id == 1
+        assert channel_level.current_level == 50
+        assert channel_level.target_level == 50
+        assert channel_level.level_info.kelvin == 2700
 
     def test_without_level_info(self):
-        cl = ChannelLevel(channel_id=0, current_level=127, target_level=127, level_info=None)
-        assert cl.level_info is None
+        channel_level = ChannelLevel(channel_id=0, current_level=127, target_level=127, level_info=None)
+        assert channel_level.level_info is None
 
 
 class TestLevel:
