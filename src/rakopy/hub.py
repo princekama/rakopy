@@ -318,7 +318,8 @@ class Hub:
                 self._writer.transport is None or
                 self._writer.transport.is_closing()
             ):
-                self._reader, self._writer = await asyncio.open_connection(self.host, self.port, limit=1048576)
+                self._reader, self._writer = await asyncio.open_connection(
+                    self.host, self.port, limit=1048576)
 
                 payload = {
                     "version": 2,
