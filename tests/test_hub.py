@@ -313,7 +313,7 @@ class TestReconnect:
 
             await hub._reconnect()
 
-            mock_conn.assert_called_once_with("192.168.1.42", DEFAULT_PORT)
+            mock_conn.assert_called_once_with("192.168.1.42", DEFAULT_PORT, limit=1048576)
             # Should have sent SUB message
             writer.write.assert_called_once()
             sent = writer.write.call_args[0][0].decode()
