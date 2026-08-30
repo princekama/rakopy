@@ -1,3 +1,7 @@
+[FORMAT]
+# The test module is a single flat file of table-driven cases; let it grow.
+max-module-lines = 2000
+
 [DESIGN]
 max-args = 8
 max-attributes = 8

@@ -296,6 +296,52 @@ class TestToLevel:
         assert level.channel_levels[1].current_level == 200
         assert level.channel_levels[1].level_info.red == 255
 
+    def test_level_info_key_absent(self):
+        """Some hub firmware omits levelInfo entirely (issue #25)."""
+        data = {
+            "roomId": 45,
+            "currentScene": -1,
+            "channel": [
+                {"channelId": 0, "currentLevel": 127, "targetLevel": 127},
+            ],
+        }
+        level = Hub._to_level(data)
+        assert level.channel_levels[0].level_info is None
+        assert level.channel_levels[0].current_level == 127
+
+    def test_levels_absent(self):
+        data = {
+            "roomId": 45,
+            "currentScene": -1,
+            "channel": [
+                {"channelId": 0},
+            ],
+        }
+        level = Hub._to_level(data)
+        assert level.channel_levels[0].current_level == 0
+        assert level.channel_levels[0].target_level is None
+        assert level.channel_levels[0].level_info is None
+
+    def test_partial_level_info(self):
+        data = {
+            "roomId": 45,
+            "currentScene": 1,
+            "channel": [
+                {
+                    "channelId": 1,
+                    "currentLevel": 50,
+                    "targetLevel": 50,
+                    "levelInfo": {"kelvin": 2700},
+                },
+            ],
+        }
+        level = Hub._to_level(data)
+        level_info = level.channel_levels[0].level_info
+        assert level_info.kelvin == 2700
+        assert level_info.red is None
+        assert level_info.green is None
+        assert level_info.blue is None
+
 
 # ---------------------------------------------------------------------------
 # Hub._reconnect

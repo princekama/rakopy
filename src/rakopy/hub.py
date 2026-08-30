@@ -376,13 +376,13 @@ class Hub:
         """
         channel_levels = []
         for channel_level in data["channel"]:
-            level_info_data = channel_level["levelInfo"]
+            level_info_data = channel_level.get("levelInfo", None)
             if level_info_data:
                 level_info = LevelInfo(
-                    kelvin = level_info_data["kelvin"],
-                    red = level_info_data["red"],
-                    green = level_info_data["green"],
-                    blue = level_info_data["blue"]
+                    kelvin = level_info_data.get("kelvin", None),
+                    red = level_info_data.get("red", None),
+                    green = level_info_data.get("green", None),
+                    blue = level_info_data.get("blue", None)
                 )
             else:
                 level_info = None
@@ -390,8 +390,8 @@ class Hub:
             channel_levels.append(
                 ChannelLevel(
                     channel_id = channel_level["channelId"],
-                    current_level = channel_level["currentLevel"],
-                    target_level = channel_level["targetLevel"],
+                    current_level = channel_level.get("currentLevel", 0),
+                    target_level = channel_level.get("targetLevel", None),
                     level_info = level_info
                 )
             )
